@@ -75,7 +75,7 @@ COPY tensorflow /opt/program
 
 WORKDIR /opt/program
 
-RUN pwd && ls -lh
+# RUN pwd && ls -lh
 # Install tensorflow models
 RUN git clone --depth 1 https://github.com/tensorflow/models && cd models/research
 # RUN git clone https://github.com/tensorflow/models && cd models/research
@@ -94,7 +94,7 @@ RUN protoc object_detection/protos/*.proto --python_out=.
 
 # Add Libraries to PYTHONPATH
 # RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
-RUN echo 1
+# RUN echo 1
 ENV PYTHONPATH=$PYTHONPATH:/opt/program/models/research:/opt/program/models/research/slim
 
 # Testing the Installation

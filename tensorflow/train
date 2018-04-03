@@ -38,12 +38,13 @@ start_time = time.time()
 def timed_loop():
     with open(param_path, 'r') as tc:
         trainingParams = json.load(tc)
+    print("trainingParams: ", trainingParams)
     max_run_time = trainingParams["max_run_time"]
     i = 1
     while True:
         time.sleep(1)
         current_time = time.time()
-        if current_time - start_time > max_run_time:
+        if current_time - start_time > int(max_run_time):
             print("Training time max_run_time completed. Will exit now")
             os._exit(0)
         # print(i)
