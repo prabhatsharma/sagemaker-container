@@ -33,9 +33,14 @@ training_path = os.path.join(input_path, channel_name)
 
 def signal_handler(signum, frame):
     if signum == signal.SIGTERM:
-        print("Request to termination received. Nothing to do here, since model checkpoints are being saved in output already")
+        print("SIGTERM received. Nothing to do here, since model checkpoints are being saved in output already")
+        os._exit(0)
+    elif signum == signal.SIGINT:
+        print("SIGINT received. Nothing to do here, since model checkpoints are being saved in output already")
+        os._exit(0)
 
 signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 # The function to execute the training.
 def train():

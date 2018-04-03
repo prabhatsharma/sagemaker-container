@@ -2,7 +2,8 @@
 # This is a Python 2 image that uses the nginx, gunicorn, flask stack
 # for serving inferences in a stable way.
 
-FROM nvidia/cuda:9.1-cudnn7-runtime-ubuntu16.04
+# FROM nvidia/cuda:9.1-cudnn7-runtime-ubuntu16.04
+FROM ubuntu:16.04
 # FROM smtf
 
 LABEL version="1.0"
