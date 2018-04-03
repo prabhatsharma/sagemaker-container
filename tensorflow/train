@@ -17,6 +17,7 @@ import subprocess
 import pandas as pd
 import threading
 import time
+import glob
 
 
 # These are the paths to where SageMaker mounts interesting things in your container.
@@ -35,6 +36,28 @@ training_path = os.path.join(input_path, channel_name)
 
 # To pick the max_run_time hyperparameter and terminate it in that time
 start_time = time.time()
+
+def export_model():
+    print("Exporting the model now.")
+
+    # find latest checkpoint number
+    # path = "./local_test/test_dir/checkpoint/model.ckpt*.index"
+    path = "/opt/ml/checkpoint/model.ckpt*.index"
+    index_files = glob.glob(path)
+    index_list = []
+    print(index_files)
+    for file in index_files:
+        index = file.split('/')
+        index = index[len(index)-1].split('.')[1].split('-')[1]
+        index_list.append(int(index))
+    max_checkpoint = max(index_list)
+
+    start_export = ["python", "object_detection/export_inference_graph.py", "--input_type image_tensor",
+                    "--pipeline_config_path=../../faster_rcnn_resnet101_pets.config",
+                    "--trained_checkpoint_prefix=/opt/ml/checkpoint/model.ckpt-" + str(max_checkpoint), "--output_directory=/opt/ml/model/data"]
+    subprocess.run(start_export)
+
+
 def timed_loop():
     with open(param_path, 'r') as tc:
         trainingParams = json.load(tc)
@@ -45,7 +68,8 @@ def timed_loop():
         time.sleep(1)
         current_time = time.time()
         if current_time - start_time > int(max_run_time):
-            print("Training time max_run_time completed. Will exit now")
+            print("Training time max_run_time completed. Will export model now")
+            export_model()
             os._exit(0)
         # print(i)
         i += 1
@@ -54,18 +78,23 @@ threading.Thread(target=timed_loop).start()
 
 def signal_handler(signum, frame):
     if signum == signal.SIGTERM:
-        print("SIGTERM received. Nothing to do here, since model checkpoints are being saved in output already")
+        print("SIGTERM received. Try to export model now")
+        export_model()
         os._exit(0)
     elif signum == signal.SIGINT:
-        print("SIGINT received. Nothing to do here, since model checkpoints are being saved in output already")
+        print("SIGINT received. Try to export model now")
+        export_model()
         os._exit(0)
+
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 # The function to execute the training.
+
+
 def train():
-    print('Starting the training. Python 2.x will fail. Python version is: ', sys.version)
+    print('Starting the training.')
     try:
         # Read in any hyperparameters that the user passed with the training job
         with open(param_path, 'r') as tc:
@@ -80,12 +109,11 @@ def train():
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
 
-
-
         # call the object detection api
         # /opt/ml/model/data will store training output artifact
         os.chdir("models/research")
-        start_training = ["python", "object_detection/train.py", "--logtostderr", "--pipeline_config_path=../../faster_rcnn_resnet101_pets.config", "--train_dir=/opt/ml/model/data"]
+        start_training = ["python", "object_detection/train.py", "--logtostderr",
+                          "--pipeline_config_path=../../faster_rcnn_resnet101_pets.config", "--train_dir=/opt/ml/checkpoint"]
         subprocess.run(start_training)
         print('Training complete.')
     except Exception as e:
@@ -103,6 +131,7 @@ def train():
 
 if __name__ == '__main__':
     train()
+    # export_model()
 
     # A zero exit code causes the job to be marked a Succeeded.
     sys.exit(0)
