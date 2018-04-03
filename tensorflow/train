@@ -15,6 +15,8 @@ import signal
 import tensorflow as tf
 import subprocess
 import pandas as pd
+import threading
+import time
 
 
 # These are the paths to where SageMaker mounts interesting things in your container.
@@ -30,6 +32,24 @@ param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 # File mode, the input files are copied to the directory specified here.
 channel_name = 'training'
 training_path = os.path.join(input_path, channel_name)
+
+# To pick the max_run_time hyperparameter and terminate it in that time
+start_time = time.time()
+def timed_loop():
+    with open(param_path, 'r') as tc:
+        trainingParams = json.load(tc)
+    max_run_time = trainingParams["max_run_time"]
+    i = 1
+    while True:
+        time.sleep(1)
+        current_time = time.time()
+        if current_time - start_time > max_run_time:
+            print("Training time max_run_time completed. Will exit now")
+            os._exit(0)
+        # print(i)
+        i += 1
+
+threading.Thread(target=timed_loop).start()
 
 def signal_handler(signum, frame):
     if signum == signal.SIGTERM:

@@ -1,4 +1,5 @@
 {
     "hp1": "value1",
-    "hp2": "value2"
+    "hp2": "value2",
+    "max_run_time": 60
 }
