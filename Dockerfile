@@ -2,8 +2,11 @@
 # This is a Python 2 image that uses the nginx, gunicorn, flask stack
 # for serving inferences in a stable way.
 
-# FROM nvidia/cuda:9.1-cudnn7-runtime-ubuntu16.04
-FROM ubuntu:16.04
+# FROM tensorflow/tensorflow:1.7.0-devel-gpu
+# FROM tensorflow/tensorflow:1.7.0-gpu-py3
+#FROM tensorflow/tensorflow:latest-gpu
+FROM nvidia/cuda:9.0-cudnn7-runtime-ubuntu16.04
+# FROM ubuntu:16.04
 # FROM smtf
 
 LABEL version="1.0"
@@ -15,6 +18,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     python \
     nginx \
     ca-certificates \
+    python2.7 \
     python3.5 \
     python3-pip \
     python-pip \
@@ -22,6 +26,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     protobuf-compiler python-pil python-lxml python-tk \
     && rm -rf /var/lib/apt-get/lists/*
 
+RUN apt install --allow-downgrades -y libcudnn7-dev=7.0.5.15-1+cuda9.1 libcudnn7=7.0.5.15-1+cuda9.1
 # Install object_detection dependencies
 RUN apt-get -y install build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev 
 
@@ -33,7 +38,7 @@ RUN apt-get -y install build-essential autoconf libtool pkg-config python-opengl
 
 RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificates \
     libglib2.0-0 libxext6 libsm6 libxrender1 \
-    git 
+    git python3-pip 
 
 RUN echo alias python=python3 >> ~/.bashrc
 # RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
@@ -44,13 +49,17 @@ RUN echo alias python=python3 >> ~/.bashrc
 # ENV PATH /opt/conda/bin:$PATH
 RUN pip install --upgrade pip
 RUN pip install -U setuptools
-RUN pip install pandas tensorflow Cython pillow lxml matplotlib
+RUN pip install pandas Cython pillow lxml matplotlib
+RUN pip install tensorflow-gpu
 # RUN pip install Cython pillow lxml
 # RUN pip install matplotlib
 
 RUN pip3 install --upgrade pip
 RUN pip3 install -U setuptools
-RUN pip3 install pandas tensorflow Cython pillow lxml matplotlib
+RUN pip3 install pandas Cython pillow lxml matplotlib
+RUN pip3 install tensorflow-gpu
+
+#RUN pip3 install pandas tensorflow-gpu==1.5 Cython pillow lxml matplotlib
 # RUN pip3 install Cython pillow lxml
 # RUN pip3 install matplotlib
 
@@ -63,7 +72,8 @@ RUN pip3 install pandas tensorflow Cython pillow lxml matplotlib
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
-ENV PATH="/opt/program:${PATH}"
+ENV PATH="/opt/program:${PATH}:/usr/local/cuda-9.0/bin"
+ENV LD_LIBRARY_PATH="/usr/local/cuda-9.0/lib64"
 
 RUN rm -rf /root/.cache
 
@@ -72,6 +82,9 @@ COPY ./local_test/test_dir /opt/ml
 
 # Set up the program in the image
 COPY tensorflow /opt/program
+
+COPY lib/libcuda.so.1 /usr/lib/libcuda.so.1
+COPY lib/libnvidia-fatbinaryloader.so.384.111 /usr/lib/libnvidia-fatbinaryloader.so.384.111
 
 WORKDIR /opt/program
 
@@ -99,7 +112,11 @@ ENV PYTHONPATH=$PYTHONPATH:/opt/program/models/research:/opt/program/models/rese
 
 # Testing the Installation
 # RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim && env && python object_detection/builders/model_builder_test.py
-RUN python object_detection/builders/model_builder_test.py
+RUN echo 3
+RUN env
+RUN python --version
+RUN python3 --version
+RUN python3 object_detection/builders/model_builder_test.py
 
 # Downloading a COCO-pretrained Model for Transfer Learning
 RUN wget http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz \
