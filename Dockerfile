@@ -26,7 +26,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     protobuf-compiler python-pil python-lxml python-tk \
     && rm -rf /var/lib/apt-get/lists/*
 
-RUN apt install --allow-downgrades -y libcudnn7-dev=7.0.5.15-1+cuda9.1 libcudnn7=7.0.5.15-1+cuda9.1
+# RUN apt install --allow-downgrades -y libcudnn7-dev=7.0.5.15-1+cuda9.1 libcudnn7=7.0.5.15-1+cuda9.1
 # Install object_detection dependencies
 RUN apt-get -y install build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev 
 
