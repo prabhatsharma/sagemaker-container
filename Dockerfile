@@ -4,8 +4,8 @@
 
 # FROM tensorflow/tensorflow:1.7.0-devel-gpu
 # FROM tensorflow/tensorflow:1.7.0-gpu-py3
-#FROM tensorflow/tensorflow:latest-gpu
-FROM nvidia/cuda:9.0-cudnn7-runtime-ubuntu16.04
+FROM tensorflow/tensorflow:latest-gpu
+# FROM nvidia/cuda:9.0-cudnn7-runtime-ubuntu16.04
 # FROM ubuntu:16.04
 # FROM smtf
 
@@ -46,15 +46,15 @@ RUN echo alias python=python3 >> ~/.bashrc
 #     /bin/bash ~/anaconda.sh -b -p /opt/conda && \
 #     rm ~/anaconda.sh
 
-# ENV PATH /opt/conda/bin:$PATH
-RUN pip install --upgrade pip
+# # ENV PATH /opt/conda/bin:$PATH
+# RUN pip install --upgrade pip
 RUN pip install -U setuptools
 RUN pip install pandas Cython pillow lxml matplotlib
 RUN pip install tensorflow-gpu
 # RUN pip install Cython pillow lxml
 # RUN pip install matplotlib
 
-RUN pip3 install --upgrade pip
+# RUN pip3 install --upgrade pip
 RUN pip3 install -U setuptools
 RUN pip3 install pandas Cython pillow lxml matplotlib
 RUN pip3 install tensorflow-gpu
@@ -73,7 +73,7 @@ RUN pip3 install tensorflow-gpu
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
 ENV PATH="/opt/program:${PATH}:/usr/local/cuda-9.0/bin"
-ENV LD_LIBRARY_PATH="/usr/local/cuda-9.0/lib64"
+# ENV LD_LIBRARY_PATH="/usr/local/cuda-9.0/lib64"
 
 RUN rm -rf /root/.cache
 
@@ -83,8 +83,9 @@ COPY ./local_test/test_dir /opt/ml
 # Set up the program in the image
 COPY tensorflow /opt/program
 
-COPY lib/libcuda.so.1 /usr/lib/libcuda.so.1
-COPY lib/libnvidia-fatbinaryloader.so.384.111 /usr/lib/libnvidia-fatbinaryloader.so.384.111
+#COPY lib/libcuda.so.1 /usr/lib/libcuda.so.1
+#COPY lib/libnvidia-fatbinaryloader.so.384.111 /usr/lib/libnvidia-fatbinaryloader.so.384.111
+# COPY lib/libnvidia-fatbinaryloader.so.390.46 /usr/lib/libnvidia-fatbinaryloader.so.390.46
 
 WORKDIR /opt/program
 
@@ -112,11 +113,11 @@ ENV PYTHONPATH=$PYTHONPATH:/opt/program/models/research:/opt/program/models/rese
 
 # Testing the Installation
 # RUN export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim && env && python object_detection/builders/model_builder_test.py
-RUN echo 3
+RUN echo 4
 RUN env
 RUN python --version
 RUN python3 --version
-RUN python3 object_detection/builders/model_builder_test.py
+# RUN python3 object_detection/builders/model_builder_test.py
 
 # Downloading a COCO-pretrained Model for Transfer Learning
 RUN wget http://storage.googleapis.com/download.tensorflow.org/models/object_detection/faster_rcnn_resnet101_coco_11_06_2017.tar.gz \
